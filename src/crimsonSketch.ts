@@ -290,7 +290,7 @@ export function createSketch(parameterStore: ParameterStore) {
       // Draw particles to the particle layer
       particleLayer.push();
       particleLayer.noStroke();
-      particleLayer.blendMode(p.REMOVE);
+      particleLayer.blendMode(p.REMOVE as any);
 
       // draw a rectangle over the whole canvase with the trail transparency
       // particleLayer.tint(255,parameterStore.trailTransparency);
