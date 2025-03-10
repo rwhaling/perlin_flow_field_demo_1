@@ -222,7 +222,7 @@ export function createSketch(parameterStore: ParameterStore) {
       
       // Convert blurAmount to hex and use it for the alpha value
       let alphaHex = Math.floor(gridTransparency).toString(16).padStart(2, '0');
-      gridLayer.fill(`#F2EFE7${alphaHex}`); // 
+      gridLayer.fill(`#FFF8E6${alphaHex}`); // 
       
       gridLayer.noStroke();
       gridLayer.rect(0, 0, p.width, p.height);
@@ -317,8 +317,8 @@ export function createSketch(parameterStore: ParameterStore) {
         // Draw the particle on the particle layer
         particleLayer.blendMode(p.BLEND);
 
-        particleLayer.fill("#2973B2");
-        particleLayer.stroke("#2973B2");
+        particleLayer.fill("#8D0B41");
+        particleLayer.stroke("#8D0B41");
         particleLayer.strokeWeight(parameterStore.particleTrailWeight); // Adjustable trail weight
         particleLayer.line(
           particle.prevPos.x, particle.prevPos.y,
@@ -326,7 +326,7 @@ export function createSketch(parameterStore: ParameterStore) {
         );
         
         particleLayer.noStroke();
-        particleLayer.fill("#2973B2");
+        particleLayer.fill("#8D0B41");
         particleLayer.circle(particle.pos.x, particle.pos.y, parameterStore.particleTrailWeight);
       }
       particleLayer.pop();
