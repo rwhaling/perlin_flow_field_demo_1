@@ -1,4 +1,5 @@
 import p5 from "p5";
+// import qrCodeImg from "./cropped_qr_whaling_dev.png";
 
 // Parameter definitions moved from main.tsx to here
 export const numericParameterDefs = {
@@ -124,7 +125,8 @@ export function createSketch(parameterStore: ParameterStore) {
     
     p.preload = function() {
       // can preload assets here...
-      qrImage = p.loadImage("cropped_qr_whaling_dev.png");
+        qrImage = p.loadImage("./cropped_qr_whaling_dev.png");
+      // qrImage = p.loadImage(qrCodeImg);
 
       // get the width and height of the image
       console.log("loaded image, width:", qrImage.width, "height:", qrImage.height);
