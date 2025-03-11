@@ -125,7 +125,7 @@ export function createSketch(parameterStore: ParameterStore) {
     
     p.preload = function() {
       // can preload assets here...
-        qrImage = p.loadImage("./cropped_qr_whaling_dev.png");
+        qrImage = p.loadImage("./cropped_qr_2.png");
       // qrImage = p.loadImage(qrCodeImg);
 
       // get the width and height of the image
