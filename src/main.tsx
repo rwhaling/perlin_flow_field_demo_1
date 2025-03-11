@@ -42,7 +42,7 @@ main(rootEl);
 function TestApp() {
   const [showParams, setShowParams] = useState(() => {
     const urlParams = new URLSearchParams(window.location.search);
-    return urlParams.get('display') === 'true';
+    return urlParams.get('debug') === 'true';
   });
   
   const [sketchType, setSketchType] = useState<SketchType>("default");
@@ -59,9 +59,9 @@ function TestApp() {
   useEffect(() => {
     const url = new URL(window.location.href);
     if (showParams) {
-      url.searchParams.set('display', 'true');
+      url.searchParams.set('debug', 'true');
     } else {
-      url.searchParams.delete('display');
+      url.searchParams.delete('debug');
     }
     window.history.replaceState({}, '', url);
   }, [showParams]);
@@ -91,7 +91,7 @@ function TestApp() {
   const currentParameterDefs = sketchConfigs[sketchType].parameterDefs;
 
   // Only render the controls panel if showParams is true
-  if (showParams) {
+  if (!showParams) {
     return null; // This will hide the entire card when display !== 'true'
   }
 
