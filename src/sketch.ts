@@ -111,6 +111,7 @@ export function createSketch(parameterStore: ParameterStore) {
     let gridLayer: p5.Graphics;
     let particleMask: p5.Graphics;
     let qrData: boolean[] = [];
+    let canvasSize: number;
     
     // Improved particle structure with vectors and previous position
     interface SimpleParticle {
@@ -136,15 +137,18 @@ export function createSketch(parameterStore: ParameterStore) {
     };
     
     p.setup = function() {
-      p.createCanvas(500, 500, p.WEBGL);
+      // Determine the canvas size based on screen width
+      canvasSize = Math.min(500, window.innerWidth - 20); // 20px buffer
+      
+      p.createCanvas(canvasSize, canvasSize, p.WEBGL);
       // Create particle layer with same dimensions and renderer
-      particleLayer = p.createGraphics(500, 500, p.WEBGL);
+      particleLayer = p.createGraphics(canvasSize, canvasSize, p.WEBGL);
       particleLayer.setAttributes({ alpha: true });
-      particleMask = p.createGraphics(500, 500, p.WEBGL);
+      particleMask = p.createGraphics(canvasSize, canvasSize, p.WEBGL);
       particleMask.setAttributes({ alpha: true });
       particleMask.fill("#FFFFFFDD");
-      particleMask.rect(0, 0, 500, 500);
-      gridLayer = p.createGraphics(500, 500, p.WEBGL);      
+      particleMask.rect(0, 0, canvasSize, canvasSize);
+      gridLayer = p.createGraphics(canvasSize, canvasSize, p.WEBGL);      
 
       console.log("scanning image, width:", qrImage.width, "height:", qrImage.height, "density:", (qrImage as any).pixelDensity());
       let qrWidth = qrImage.width;
@@ -169,6 +173,30 @@ export function createSketch(parameterStore: ParameterStore) {
 
       // p.background("#FFF8E6");
       // ...
+    };
+    
+    // Handle window resizing
+    p.windowResized = function() {
+      // Update canvas size when window is resized
+      const newSize = Math.min(500, window.innerWidth - 20);
+      
+      // Only resize if the size actually changed
+      if (newSize !== canvasSize) {
+        canvasSize = newSize;
+        p.resizeCanvas(canvasSize, canvasSize);
+        
+        // Recreate the layers with new size
+        particleLayer = p.createGraphics(canvasSize, canvasSize, p.WEBGL);
+        particleLayer.setAttributes({ alpha: true });
+        particleMask = p.createGraphics(canvasSize, canvasSize, p.WEBGL);
+        particleMask.setAttributes({ alpha: true });
+        particleMask.fill("#FFFFFFDD");
+        particleMask.rect(0, 0, canvasSize, canvasSize);
+        gridLayer = p.createGraphics(canvasSize, canvasSize, p.WEBGL);
+        
+        // Reset particles for the new canvas size
+        particles = [];
+      }
     };
     
     // Create a new particle with vector properties
