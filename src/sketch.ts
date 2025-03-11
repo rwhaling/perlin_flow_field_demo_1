@@ -144,7 +144,7 @@ export function createSketch(parameterStore: ParameterStore) {
       particleMask.rect(0, 0, 500, 500);
       gridLayer = p.createGraphics(500, 500, p.WEBGL);      
 
-      console.log("scanning image, width:", qrImage.width, "height:", qrImage.height, "density:", qrImage.pixelDensity());
+      console.log("scanning image, width:", qrImage.width, "height:", qrImage.height, "density:", (qrImage as any).pixelDensity());
       let qrWidth = qrImage.width;
       let qrHeight = qrImage.height;
       let qrRowCount = 25;
