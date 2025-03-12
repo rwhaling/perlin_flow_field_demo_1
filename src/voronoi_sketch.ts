@@ -1,4 +1,5 @@
 import p5 from "p5";
+import {Delaunay, Voronoi} from "d3-delaunay";
 // import qrCodeImg from "./cropped_qr_whaling_dev.png";
 
 // Parameter definitions moved from main.tsx to here
@@ -25,7 +26,7 @@ export const numericParameterDefs = {
     "min": 0,
     "max": 10,
     "step": 1,
-    "defaultValue": 3,
+    "defaultValue": 4,
   },
   "noiseDetailFalloff": {
     "min": 0,
@@ -49,7 +50,7 @@ export const numericParameterDefs = {
     "min": 0,
     "max": 255,
     "step": 1,
-    "defaultValue": 1,
+    "defaultValue": 0,
   },
   "gridSize": {
     "min": 10,
@@ -80,7 +81,7 @@ export const numericParameterDefs = {
     "min": 1,
     "max": 5,
     "step": 0.5,
-    "defaultValue": 3.5,
+    "defaultValue": 4,
   },
 };
 
@@ -112,6 +113,10 @@ export function createSketch(parameterStore: ParameterStore) {
     let particleMask: p5.Graphics;
     let qrData: boolean[] = [];
     let canvasSize: number;
+
+    let voronoi_points: number[] = [];
+    let delaunay: Delaunay;
+    let voronoi: Voronoi;
     
     // Improved particle structure with vectors and previous position
     interface SimpleParticle {
@@ -126,7 +131,7 @@ export function createSketch(parameterStore: ParameterStore) {
     
     p.preload = function() {
       // can preload assets here...
-        qrImage = p.loadImage("./cropped_qr_4.png");
+      qrImage = p.loadImage("./cropped_qr_4.png");
       // qrImage = p.loadImage(qrCodeImg);
 
       // get the width and height of the image
@@ -134,21 +139,31 @@ export function createSketch(parameterStore: ParameterStore) {
       font = p.loadFont(
         new URL("/public/fonts/inconsolata.otf", import.meta.url).href
       );
+
     };
     
     p.setup = function() {
       // Determine the canvas size based on screen width
       canvasSize = Math.min(500, window.innerWidth - 20); // 20px buffer
       
-      p.createCanvas(canvasSize, canvasSize, p.WEBGL);
+      p.createCanvas(canvasSize * 2, canvasSize * 2, p.P2D);
       // Create particle layer with same dimensions and renderer
-      particleLayer = p.createGraphics(canvasSize, canvasSize, p.WEBGL);
+      particleLayer = p.createGraphics(canvasSize, canvasSize, p.P2D);
       particleLayer.setAttributes({ alpha: true });
       particleMask = p.createGraphics(canvasSize, canvasSize, p.WEBGL);
       particleMask.setAttributes({ alpha: true });
       particleMask.fill("#FFFFFFDD");
       particleMask.rect(0, 0, canvasSize, canvasSize);
       gridLayer = p.createGraphics(canvasSize, canvasSize, p.WEBGL);      
+
+      // generate an array of 20 random points between 0 and canvasSize
+      voronoi_points = Array.from({ length: 600 }, () => p.random(canvasSize));
+      delaunay = new Delaunay(voronoi_points);
+      voronoi = delaunay.voronoi();
+
+      // p.drawingContext.beginPath();
+      // voronoi.render(p.drawingContext);
+      // p.drawingContext.stroke();
 
       console.log("scanning image, width:", qrImage.width, "height:", qrImage.height, "density:", (qrImage as any).pixelDensity());
       let qrWidth = qrImage.width;
@@ -256,6 +271,7 @@ export function createSketch(parameterStore: ParameterStore) {
     }
     
     p.draw = function() {
+      // return;
       let timeMultiplier = parameterStore.timeMultiplier;
       let noiseSize = parameterStore.noiseSize;
       let noiseScale = parameterStore.noiseScale;
@@ -314,51 +330,51 @@ export function createSketch(parameterStore: ParameterStore) {
       const noiseOffsetY = p.height/2;
       
       
-      // Instead of iterating over canvas dimensions, use grid indices from 0 to 24
-      for (let i = 0; i <= 24; i++) {
-        for (let j = 0; j <= 24; j++) {
-          // Map grid indices to canvas positions with inset
-          // const x = p.map(i, 0, 24, startX, endX);
-          // const y = p.map(j, 0, 24, startY, endY);
+      // // Instead of iterating over canvas dimensions, use grid indices from 0 to 24
+      // for (let i = 0; i <= 24; i++) {
+      //   for (let j = 0; j <= 24; j++) {
+      //     // Map grid indices to canvas positions with inset
+      //     // const x = p.map(i, 0, 24, startX, endX);
+      //     // const y = p.map(j, 0, 24, startY, endY);
 
-          const x = -p.width / 2 + (i + insetCells) * cellWidth;
-          const y = (j + insetCells) * cellHeight - p.height/2;
+      //     const x = -p.width / 2 + (i + insetCells) * cellWidth;
+      //     const y = (j + insetCells) * cellHeight - p.height/2;
           
-          let angle = p.noise((x + noiseOffsetX) * noiseScale, (y + noiseOffsetY) * noiseScale, time);
-          let angleRadians = 2 * angle * Math.PI * 2;
+      //     let angle = p.noise((x + noiseOffsetX) * noiseScale, (y + noiseOffsetY) * noiseScale, time);
+      //     let angleRadians = 2 * angle * Math.PI * 2;
           
-          // Calculate vector endpoint
+      //     // Calculate vector endpoint
 
-          // look up the cell in the qrData array
-          let cellValue = qrData[25 * i + j];
-          // console.log("cellValue:", i, j, cellValue);
+      //     // look up the cell in the qrData array
+      //     let cellValue = qrData[25 * i + j];
+      //     // console.log("cellValue:", i, j, cellValue);
 
-          if (cellValue) {
-            gridLayer.noStroke();
-            gridLayer.fill("#446430");
-            // Size of each grid cell
-            // gridLayer.rect(x, y, cellWidth, cellHeight);
+      //     if (cellValue) {
+      //       gridLayer.noStroke();
+      //       gridLayer.fill("#446430");
+      //       // Size of each grid cell
+      //       // gridLayer.rect(x, y, cellWidth, cellHeight);
 
-            gridLayer.stroke("#446430");
-            gridLayer.strokeWeight(1);
+      //       gridLayer.stroke("#446430");
+      //       gridLayer.strokeWeight(1);
             
-            // Draw the line
-            let x1 = x + (cellWidth * 0.5)
-            let y1 = y + (cellHeight * 0.5)
-            let x2 = x1 + (cellWidth * 0.3) * Math.cos(angleRadians);
-            let y2 = y1 + (cellHeight * 0.3) * Math.sin(angleRadians);
+      //       // Draw the line
+      //       let x1 = x + (cellWidth * 0.5)
+      //       let y1 = y + (cellHeight * 0.5)
+      //       let x2 = x1 + (cellWidth * 0.3) * Math.cos(angleRadians);
+      //       let y2 = y1 + (cellHeight * 0.3) * Math.sin(angleRadians);
             
-            // Set explicit stroke color and weight before drawing the line
-            gridLayer.stroke("#D6CFB4");
-            gridLayer.strokeWeight(1);
+      //       // Set explicit stroke color and weight before drawing the line
+      //       gridLayer.stroke("#D6CFB4");
+      //       gridLayer.strokeWeight(1);
             
-            // Draw the line
-            gridLayer.line(x1, y1, x2, y2);
+      //       // Draw the line
+      //       gridLayer.line(x1, y1, x2, y2);
   
-            // gridLayer.line(x, y, x1, y1);
-          }
-        }
-      }
+      //       // gridLayer.line(x, y, x1, y1);
+      //     }
+      //   }
+      // }
 
       // After drawing the vector field, handle particles
       
@@ -386,7 +402,8 @@ export function createSketch(parameterStore: ParameterStore) {
       particleLayer.fill("#FFFFFF" + parameterStore.trailTransparency.toString(16).padStart(2, '0'));
       // particleLayer.fill("#FFFFFF04");
 
-      particleLayer.rect(-particleLayer.width/2, -particleLayer.height/2, particleLayer.width, particleLayer.height);
+      // particleLayer.rect(-particleLayer.width/2, -particleLayer.height/2, particleLayer.width, particleLayer.height);
+      particleLayer.rect(0, 0, particleLayer.width, particleLayer.height);
       
       // Update and draw all particles on the particle layer
       for (let i = 0; i < particles.length; i++) {
@@ -421,43 +438,49 @@ export function createSketch(parameterStore: ParameterStore) {
 
         // let particleColor = "#F05D5E";
         let particleColor: string;
-        
-        // if the particle is in a cell that is part of the qr code and has value true, use a different color
-        let cellValue = qrData[25 * cellX + cellY];
-        let cellPos = 25 * cellX + cellY;
-        let colorNoiseValue = p.noise(cellX * noiseSize, cellY * noiseSize, time);
-        if (!(cellX >= 0 && cellX <= 24 && cellY >= 0 && cellY <= 24)) {
-          // out of bounds color
-          let lightColors = ["#DFF2EB", "#F6F8D5", "#F1D3CE", "#E7FBE6", "#DBC4F0"]
-          let lightColorIndex = Math.floor(p.noise(cellX,cellY,time) * lightColors.length) % lightColors.length;
-          particleColor = lightColors[lightColorIndex];
-        } else if (cellValue) {
-          // dark square
-          // lerp between #DD4B1A and #FF4B3E based on noise value of cellX, cellY, and time
-          // particleColor = p.lerpColor(p.color("#DD4B1A"), p.color("#FF4B3E"), colorNoiseValue).toString();
-          let cellColors = ["#003092", "#344CB7", "#7AB2D3", "#1C1678", "#4D55CC", "#155E95", "#27667B", "#0A97B0","#4F75FF"]
-          let particleColorNoise = p.noise(cellX,cellY,time)
-          let particleColorIndex = Math.floor(particleColorNoise * cellColors.length) % cellColors.length;
-          particleColor = cellColors[particleColorIndex];
 
-          // if (colorNoiseValue < 0.25) {
-          //   particleColor = "#FB2576";
-          // } else if (colorNoiseValue < 0.5) {
-          //   particleColor = "#FF4949";
-          // } else if (colorNoiseValue < 0.75) {
-          //   particleColor = "#FF8D29";
-          // } else {
-          //   particleColor = "#E94560";
-          // }
-        } else {
-          // light square
-          let lightColors = ["#DFF2EB", "#F6F8D5", "#F1D3CE", "#E7FBE6", "#DBC4F0"]
-          let lightColorIndex = Math.floor(p.noise(cellX,cellY,time) * lightColors.length) % lightColors.length;
-          particleColor = lightColors[lightColorIndex];
+        // determine which voronoi cell the particle is in
+        // modify the particle x y with noise displacement
+        let noiseX = p.noise(particle.pos.x * noiseScale, particle.pos.y * noiseScale, time);
+        let noiseY = p.noise(particle.pos.x * noiseScale, particle.pos.y * noiseScale, time);
+        let modifiedX = particle.pos.x + noiseX * 100;
+        let modifiedY = particle.pos.y + noiseY * 100;
+        let voronoiPoint = delaunay.find(modifiedX, modifiedY);
+        console.log("particle:", i, "voronoiPoint:", voronoiPoint);
 
-          // mix between #BFBFD9 and #F9DEC9 based on noise value of cellX, cellY, and time
-          // particleColor = p.lerpColor(p.color("#BFBFD9"), p.color("#F9DEC9"), colorNoiseValue).toString();
+        let cellColors = ["#003092", "#344CB7", "#7AB2D3", "#1C1678", "#4D55CC", "#155E95", "#27667B", "#0A97B0","#4F75FF"]
+        let particleColorIndex = voronoiPoint % cellColors.length;
+        particleColor = cellColors[particleColorIndex];
+        if (i % 500 === 0) {
+          let brightColors = ["#FF4B3E", "#F11A7B", "#F8DE22", "#FFB6D9"];
+          particleColor = brightColors[Math.floor(Math.random() * brightColors.length)];
         }
+        // if the particle is in a cell that is part of the qr code and has value true, use a different color
+        // let cellValue = qrData[25 * cellX + cellY];
+        // let colorNoiseValue = p.noise(cellX * noiseSize, cellY * noiseSize, time);
+        // if (!(cellX >= 0 && cellX <= 24 && cellY >= 0 && cellY <= 24)) {
+        //   // out of bounds color
+        //   particleColor = "#F9DEC9";
+        // } else if (cellValue) {
+        //   // dark square
+        //   // lerp between #DD4B1A and #FF4B3E based on noise value of cellX, cellY, and time
+        //   // particleColor = p.lerpColor(p.color("#DD4B1A"), p.color("#FF4B3E"), colorNoiseValue).toString();
+        //   if (colorNoiseValue < 0.25) {
+        //     particleColor = "#FB2576";
+        //   } else if (colorNoiseValue < 0.5) {
+        //     particleColor = "#FF4949";
+        //   } else if (colorNoiseValue < 0.75) {
+        //     particleColor = "#FF8D29";
+        //   } else {
+        //     particleColor = "#E94560";
+        //   }
+        // } else {
+        //   // light square
+        //   particleColor = "#FBF8EF";
+
+        //   // mix between #BFBFD9 and #F9DEC9 based on noise value of cellX, cellY, and time
+        //   // particleColor = p.lerpColor(p.color("#BFBFD9"), p.color("#F9DEC9"), colorNoiseValue).toString();
+        // }
 
         particleLayer.fill(particleColor);
         particleLayer.stroke(particleColor);
@@ -475,10 +498,10 @@ export function createSketch(parameterStore: ParameterStore) {
       
       // Overlay the particle layer on the main canvas
       p.push();
-      p.translate(-p.width/2, -p.height/2); // Move to top-left for image drawing
+      // p.translate(-p.width/2, -p.height/2); // Move to top-left for image drawing
       p.imageMode(p.CORNER);
       p.blendMode(p.BLEND);
-      p.image(gridLayer, 0, 0, p.width, p.height);
+      // p.image(gridLayer, 0, 0, p.width, p.height);
       // p.image(qrImage, startX, startY, endX - startX, endY - startY);
       // p.image(qrImage, 0,0, p.width, p.height);
 

@@ -25,7 +25,7 @@ export const numericParameterDefs = {
     "min": 0,
     "max": 10,
     "step": 1,
-    "defaultValue": 3,
+    "defaultValue": 2,
   },
   "noiseDetailFalloff": {
     "min": 0,
@@ -37,7 +37,7 @@ export const numericParameterDefs = {
     "min": 0,
     "max": 360,
     "step": 4,
-    "defaultValue": 0, // Set to match initial value
+    "defaultValue": 10, // Set to match initial value
   },
   "gridTransparency": {
     "min": 0,
@@ -62,7 +62,7 @@ export const numericParameterDefs = {
     "min": 50,
     "max": 1000, 
     "step": 10,
-    "defaultValue": 1000,
+    "defaultValue": 300,
   },
   "particleForceStrength": {
     "min": 0.01,
@@ -74,13 +74,13 @@ export const numericParameterDefs = {
     "min": 0.5,
     "max": 5,
     "step": 0.1,
-    "defaultValue": 5,
+    "defaultValue": 3.8,
   },
   "particleTrailWeight": {
     "min": 1,
     "max": 5,
     "step": 0.5,
-    "defaultValue": 3.5,
+    "defaultValue": 5,
   },
 };
 
@@ -420,43 +420,15 @@ export function createSketch(parameterStore: ParameterStore) {
         particleLayer.blendMode(p.BLEND);
 
         // let particleColor = "#F05D5E";
-        let particleColor: string;
+        let particleColor = "#CBD3F6";
         
         // if the particle is in a cell that is part of the qr code and has value true, use a different color
         let cellValue = qrData[25 * cellX + cellY];
-        let cellPos = 25 * cellX + cellY;
-        let colorNoiseValue = p.noise(cellX * noiseSize, cellY * noiseSize, time);
         if (!(cellX >= 0 && cellX <= 24 && cellY >= 0 && cellY <= 24)) {
           // out of bounds color
-          let lightColors = ["#DFF2EB", "#F6F8D5", "#F1D3CE", "#E7FBE6", "#DBC4F0"]
-          let lightColorIndex = Math.floor(p.noise(cellX,cellY,time) * lightColors.length) % lightColors.length;
-          particleColor = lightColors[lightColorIndex];
+          particleColor = "#40DDC8";
         } else if (cellValue) {
-          // dark square
-          // lerp between #DD4B1A and #FF4B3E based on noise value of cellX, cellY, and time
-          // particleColor = p.lerpColor(p.color("#DD4B1A"), p.color("#FF4B3E"), colorNoiseValue).toString();
-          let cellColors = ["#003092", "#344CB7", "#7AB2D3", "#1C1678", "#4D55CC", "#155E95", "#27667B", "#0A97B0","#4F75FF"]
-          let particleColorNoise = p.noise(cellX,cellY,time)
-          let particleColorIndex = Math.floor(particleColorNoise * cellColors.length) % cellColors.length;
-          particleColor = cellColors[particleColorIndex];
-
-          // if (colorNoiseValue < 0.25) {
-          //   particleColor = "#FB2576";
-          // } else if (colorNoiseValue < 0.5) {
-          //   particleColor = "#FF4949";
-          // } else if (colorNoiseValue < 0.75) {
-          //   particleColor = "#FF8D29";
-          // } else {
-          //   particleColor = "#E94560";
-          // }
-        } else {
-          // light square
-          let lightColors = ["#DFF2EB", "#F6F8D5", "#F1D3CE", "#E7FBE6", "#DBC4F0"]
-          let lightColorIndex = Math.floor(p.noise(cellX,cellY,time) * lightColors.length) % lightColors.length;
-          particleColor = lightColors[lightColorIndex];
-
-          // mix between #BFBFD9 and #F9DEC9 based on noise value of cellX, cellY, and time
-          // particleColor = p.lerpColor(p.color("#BFBFD9"), p.color("#F9DEC9"), colorNoiseValue).toString();
+          particleColor = "#592E83";
         }
 
         particleLayer.fill(particleColor);

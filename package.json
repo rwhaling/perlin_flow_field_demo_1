@@ -23,6 +23,7 @@
     "vite": "^6.1.0"
   },
   "dependencies": {
+    "d3-delaunay": "^6.0.4",
     "p5": "^1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

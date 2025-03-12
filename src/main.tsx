@@ -3,23 +3,57 @@ import React, { useState, useEffect } from "react";
 import { createRoot } from "react-dom/client";
 import { createSketch, numericParameterDefs, initParameterStore, ParameterStore } from "./sketch";
 import { createSketch as createCrimsonSketch, numericParameterDefs as crimsonNumericParameterDefs, initParameterStore as initCrimsonParameterStore } from "./crimsonSketch";
-
+import { createSketch as createQrSketch, numericParameterDefs as qrNumericParameterDefs, initParameterStore as initQrParameterStore } from "./sketch_qr_1";
+import { createSketch as createQrSketch2, numericParameterDefs as qrNumericParameterDefs2, initParameterStore as initQrParameterStore2 } from "./sketch_qr_2";
+import { createSketch as createQrSketch3, numericParameterDefs as qrNumericParameterDefs3, initParameterStore as initQrParameterStore3 } from "./sketch_qr_3";
+import { createSketch as createQrSketch4, numericParameterDefs as qrNumericParameterDefs4, initParameterStore as initQrParameterStore4 } from "./sketch_qr_4";
+import { createSketch as createVoronoiSketch, numericParameterDefs as voronoiNumericParameterDefs, initParameterStore as initVoronoiParameterStore } from "./voronoi_sketch";
 // Define sketch types for organization
 type SketchType = "default" | "crimson";
 
 // Create a map of sketch configurations
 const sketchConfigs = {
   default: {
-    name: "Blue Flow Field",
+    name: "Test Field",
     createSketch,
     parameterDefs: numericParameterDefs,
     initStore: initParameterStore
+  },
+  qr: {
+    name: "QR Code",
+    createSketch: createQrSketch,
+    parameterDefs: qrNumericParameterDefs,
+    initStore: initQrParameterStore
+  },
+  qr2: {
+    name: "QR Code 2",
+    createSketch: createQrSketch2,
+    parameterDefs: qrNumericParameterDefs2,
+    initStore: initQrParameterStore2
+  },
+  qr3: {
+    name: "QR Code 3",
+    createSketch: createQrSketch3,
+    parameterDefs: qrNumericParameterDefs3,
+    initStore: initQrParameterStore3
+  },
+  qr4: {
+    name: "QR Code 4",
+    createSketch: createQrSketch4,
+    parameterDefs: qrNumericParameterDefs4,
+    initStore: initQrParameterStore4
   },
   crimson: {
     name: "Crimson Flow Field",
     createSketch: createCrimsonSketch,
     parameterDefs: crimsonNumericParameterDefs,
     initStore: initCrimsonParameterStore
+  },
+  voronoi: {
+    name: "Voronoi",
+    createSketch: createVoronoiSketch,
+    parameterDefs: voronoiNumericParameterDefs,
+    initStore: initVoronoiParameterStore
   }
 };
 
