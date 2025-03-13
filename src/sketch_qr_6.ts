@@ -25,13 +25,13 @@ export const numericParameterDefs = {
     "min": 0,
     "max": 10,
     "step": 1,
-    "defaultValue": 5,
+    "defaultValue": 3,
   },
   "noiseDetailFalloff": {
     "min": 0,
     "max": 1,
     "step": 0.05,
-    "defaultValue": 0.65,
+    "defaultValue": 0.7,
   },
   "particleFrequency": {
     "min": 0,
@@ -68,19 +68,19 @@ export const numericParameterDefs = {
     "min": 0.01,
     "max": 0.5,
     "step": 0.01,
-    "defaultValue": 0.18,
+    "defaultValue": 0.25,
   },
   "particleMaxSpeed": {
     "min": 0.5,
     "max": 5,
     "step": 0.1,
-    "defaultValue": 3.2,
+    "defaultValue": 5,
   },
   "particleTrailWeight": {
     "min": 1,
     "max": 5,
     "step": 0.5,
-    "defaultValue": 1.5,
+    "defaultValue": 3.5,
   },
 };
 
@@ -432,14 +432,13 @@ export function createSketch(parameterStore: ParameterStore) {
         let cellPos = 25 * cellX + cellY;
         let colorNoiseValue = p.noise(cellX * noiseSize, cellY * noiseSize, time);
 
-        let lightColors = ["#32012F", "#32012F", "#17153B", "#1A3636", "#1A3636",]
-        let darkColors = ["#A19AD3","#A1D6CB","#FFF574","#FF8383"]
+        let lightColors = ["#000000", "#000000", "#000000"]
+        let darkColors = ["#16C47F","#687EFF","#FF9D23","#FF6868","#FF0080"]
 
 
         if (!(cellX >= 0 && cellX <= 24 && cellY >= 0 && cellY <= 24)) {
           // out of bounds color
-          let lightColorIndex = Math.floor(p.noise(particle.pos.x / 20,particle.pos.y / 20,time / 10000) * lightColors.length) % lightColors.length;
-          // let lightColorIndex = Math.floor(p.noise(cellX,cellY,time) * lightColors.length) % lightColors.length;
+          let lightColorIndex = Math.floor(p.noise(cellX,cellY,time) * lightColors.length) % lightColors.length;
           particleColor = lightColors[lightColorIndex];
         } else if (cellValue) {
           // dark square
@@ -461,8 +460,7 @@ export function createSketch(parameterStore: ParameterStore) {
           // }
         } else {
           // light square
-          let lightColorIndex = Math.floor(p.noise(particle.pos.x / 100,particle.pos.y / 100,time * timeMultiplier) * lightColors.length) % lightColors.length;
-          // let lightColorIndex = Math.floor(p.noise(cellX,cellY,time) * lightColors.length) % lightColors.length;
+          let lightColorIndex = Math.floor(p.noise(cellX,cellY,time) * lightColors.length) % lightColors.length;
           particleColor = lightColors[lightColorIndex];
 
           // mix between #BFBFD9 and #F9DEC9 based on noise value of cellX, cellY, and time

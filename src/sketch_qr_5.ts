@@ -25,13 +25,13 @@ export const numericParameterDefs = {
     "min": 0,
     "max": 10,
     "step": 1,
-    "defaultValue": 5,
+    "defaultValue": 3,
   },
   "noiseDetailFalloff": {
     "min": 0,
     "max": 1,
     "step": 0.05,
-    "defaultValue": 0.65,
+    "defaultValue": 0.7,
   },
   "particleFrequency": {
     "min": 0,
@@ -68,19 +68,19 @@ export const numericParameterDefs = {
     "min": 0.01,
     "max": 0.5,
     "step": 0.01,
-    "defaultValue": 0.18,
+    "defaultValue": 0.25,
   },
   "particleMaxSpeed": {
     "min": 0.5,
     "max": 5,
     "step": 0.1,
-    "defaultValue": 3.2,
+    "defaultValue": 5,
   },
   "particleTrailWeight": {
     "min": 1,
     "max": 5,
     "step": 0.5,
-    "defaultValue": 1.5,
+    "defaultValue": 3.5,
   },
 };
 
@@ -112,7 +112,7 @@ export function createSketch(parameterStore: ParameterStore) {
     let particleMask: p5.Graphics;
     let qrData: boolean[] = [];
     let canvasSize: number;
-    let frameCount: number = 0;
+    
     // Improved particle structure with vectors and previous position
     interface SimpleParticle {
       pos: p5.Vector;
@@ -266,7 +266,6 @@ export function createSketch(parameterStore: ParameterStore) {
       let gridTransparency = parameterStore.gridTransparency;
    
       // p.clear();
-      frameCount++;
 
       // Set noise detail for both canvases
       p.noiseDetail(octaves, falloff);
@@ -381,14 +380,10 @@ export function createSketch(parameterStore: ParameterStore) {
       particleLayer.push();
       particleLayer.noStroke();
       particleLayer.blendMode(p.REMOVE as any);
-      particleLayer.blendMode(p.MULTIPLY as any);
-
 
       // draw a rectangle over the whole canvase with the trail transparency
       // particleLayer.tint(255,parameterStore.trailTransparency);
-      if (frameCount % 2 == 0) {
-        particleLayer.fill("#000000" + parameterStore.trailTransparency.toString(16).padStart(2, '0'));
-      }
+      particleLayer.fill("#FFFFFF" + parameterStore.trailTransparency.toString(16).padStart(2, '0'));
       // particleLayer.fill("#FFFFFF04");
 
       particleLayer.rect(-particleLayer.width/2, -particleLayer.height/2, particleLayer.width, particleLayer.height);
@@ -431,21 +426,16 @@ export function createSketch(parameterStore: ParameterStore) {
         let cellValue = qrData[25 * cellX + cellY];
         let cellPos = 25 * cellX + cellY;
         let colorNoiseValue = p.noise(cellX * noiseSize, cellY * noiseSize, time);
-
-        let lightColors = ["#32012F", "#32012F", "#17153B", "#1A3636", "#1A3636",]
-        let darkColors = ["#A19AD3","#A1D6CB","#FFF574","#FF8383"]
-
-
         if (!(cellX >= 0 && cellX <= 24 && cellY >= 0 && cellY <= 24)) {
           // out of bounds color
-          let lightColorIndex = Math.floor(p.noise(particle.pos.x / 20,particle.pos.y / 20,time / 10000) * lightColors.length) % lightColors.length;
-          // let lightColorIndex = Math.floor(p.noise(cellX,cellY,time) * lightColors.length) % lightColors.length;
+          let lightColors = ["#DFF2EB", "#F6F8D5", "#F1D3CE", "#E7FBE6", "#DBC4F0"]
+          let lightColorIndex = Math.floor(p.noise(cellX,cellY,time) * lightColors.length) % lightColors.length;
           particleColor = lightColors[lightColorIndex];
         } else if (cellValue) {
           // dark square
           // lerp between #DD4B1A and #FF4B3E based on noise value of cellX, cellY, and time
           // particleColor = p.lerpColor(p.color("#DD4B1A"), p.color("#FF4B3E"), colorNoiseValue).toString();
-          let cellColors = darkColors;
+          let cellColors = ["#003092", "#344CB7", "#7AB2D3", "#1C1678", "#4D55CC", "#155E95", "#27667B", "#0A97B0","#4F75FF"]
           let particleColorNoise = p.noise(cellX,cellY,time)
           let particleColorIndex = Math.floor(particleColorNoise * cellColors.length) % cellColors.length;
           particleColor = cellColors[particleColorIndex];
@@ -461,8 +451,8 @@ export function createSketch(parameterStore: ParameterStore) {
           // }
         } else {
           // light square
-          let lightColorIndex = Math.floor(p.noise(particle.pos.x / 100,particle.pos.y / 100,time * timeMultiplier) * lightColors.length) % lightColors.length;
-          // let lightColorIndex = Math.floor(p.noise(cellX,cellY,time) * lightColors.length) % lightColors.length;
+          let lightColors = ["#DFF2EB", "#F6F8D5", "#F1D3CE", "#E7FBE6", "#DBC4F0"]
+          let lightColorIndex = Math.floor(p.noise(cellX,cellY,time) * lightColors.length) % lightColors.length;
           particleColor = lightColors[lightColorIndex];
 
           // mix between #BFBFD9 and #F9DEC9 based on noise value of cellX, cellY, and time

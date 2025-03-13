@@ -8,6 +8,8 @@ import { createSketch as createQrSketch2, numericParameterDefs as qrNumericParam
 import { createSketch as createQrSketch3, numericParameterDefs as qrNumericParameterDefs3, initParameterStore as initQrParameterStore3 } from "./sketch_qr_3";
 import { createSketch as createQrSketch4, numericParameterDefs as qrNumericParameterDefs4, initParameterStore as initQrParameterStore4 } from "./sketch_qr_4";
 import { createSketch as createVoronoiSketch, numericParameterDefs as voronoiNumericParameterDefs, initParameterStore as initVoronoiParameterStore } from "./voronoi_sketch";
+import { createSketch as createQrSketch5, numericParameterDefs as qrNumericParameterDefs5, initParameterStore as initQrParameterStore5 } from "./sketch_qr_5";
+import { createSketch as createQrSketch6, numericParameterDefs as qrNumericParameterDefs6, initParameterStore as initQrParameterStore6 } from "./sketch_qr_6";
 // Define sketch types for organization
 type SketchType = "default" | "crimson";
 
@@ -42,6 +44,18 @@ const sketchConfigs = {
     createSketch: createQrSketch4,
     parameterDefs: qrNumericParameterDefs4,
     initStore: initQrParameterStore4
+  },
+  qr5: {
+    name: "QR Code 5",
+    createSketch: createQrSketch5,
+    parameterDefs: qrNumericParameterDefs5,
+    initStore: initQrParameterStore5
+  },
+  qr6: {
+    name: "QR Code 6",
+    createSketch: createQrSketch6,
+    parameterDefs: qrNumericParameterDefs6,
+    initStore: initQrParameterStore6
   },
   crimson: {
     name: "Crimson Flow Field",
