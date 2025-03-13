@@ -13,6 +13,9 @@ import { createSketch as createQrSketch6, numericParameterDefs as qrNumericParam
 // Define sketch types for organization
 type SketchType = "default" | "crimson";
 
+// Create a global function to cycle sketches that can be called from outside React
+let cycleSketch: () => void = () => {};
+
 // Create a map of sketch configurations
 const sketchConfigs = {
   default: {
@@ -103,6 +106,36 @@ function TestApp() {
     const nextIndex = (currentIndex + 1) % sketchTypes.length;
     setSketchType(sketchTypes[nextIndex]);
   };
+  
+  // Assign the global function to our React component's function
+  cycleSketch = cycleToNextSketch;
+  
+  // Add global click handler
+  useEffect(() => {
+    function handleDocumentClick(e: MouseEvent) {
+      // Check if the click target is a UI element
+      const target = e.target as HTMLElement;
+      const isUIElement = 
+        target.tagName === 'BUTTON' || 
+        target.tagName === 'INPUT' || 
+        target.tagName === 'SELECT' || 
+        target.closest('.controls-panel') || 
+        target.classList.contains('next-sketch-button');
+      
+      // If it's not a UI element, cycle to the next sketch
+      if (!isUIElement) {
+        cycleToNextSketch();
+      }
+    }
+    
+    // Add event listener
+    document.addEventListener('click', handleDocumentClick);
+    
+    // Clean up
+    return () => {
+      document.removeEventListener('click', handleDocumentClick);
+    };
+  }, [sketchType]); // Re-attach when sketch type changes
 
   useEffect(() => {
     const url = new URL(window.location.href);
