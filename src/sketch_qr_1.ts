@@ -25,7 +25,7 @@ export const numericParameterDefs = {
     "min": 0,
     "max": 10,
     "step": 1,
-    "defaultValue": 2,
+    "defaultValue": 3,
   },
   "noiseDetailFalloff": {
     "min": 0,
@@ -49,7 +49,7 @@ export const numericParameterDefs = {
     "min": 0,
     "max": 255,
     "step": 1,
-    "defaultValue": 5,
+    "defaultValue": 1,
   },
   "gridSize": {
     "min": 10,
@@ -62,25 +62,25 @@ export const numericParameterDefs = {
     "min": 50,
     "max": 1000, 
     "step": 10,
-    "defaultValue": 300,
+    "defaultValue": 1000,
   },
   "particleForceStrength": {
     "min": 0.01,
     "max": 0.5,
     "step": 0.01,
-    "defaultValue": 0.25,
+    "defaultValue": 0.1,
   },
   "particleMaxSpeed": {
     "min": 0.5,
     "max": 5,
     "step": 0.1,
-    "defaultValue": 3.8,
+    "defaultValue": 2.4,
   },
   "particleTrailWeight": {
     "min": 1,
     "max": 5,
     "step": 0.5,
-    "defaultValue": 3,
+    "defaultValue": 1,
   },
 };
 

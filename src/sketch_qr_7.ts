@@ -7,7 +7,7 @@ export const numericParameterDefs = {
     "min": 0,
     "max": 0.01,
     "step": 0.00001,
-    "defaultValue": 0.0004, // Set to match initial value
+    "defaultValue": 0.0003, // Set to match initial value
   },
   "noiseSize": {
     "min": 0,
@@ -25,7 +25,7 @@ export const numericParameterDefs = {
     "min": 0,
     "max": 10,
     "step": 1,
-    "defaultValue": 4,
+    "defaultValue": 5,
   },
   "noiseDetailFalloff": {
     "min": 0,
@@ -74,13 +74,13 @@ export const numericParameterDefs = {
     "min": 0.5,
     "max": 5,
     "step": 0.1,
-    "defaultValue": 2,
+    "defaultValue": 3.2,
   },
   "particleTrailWeight": {
     "min": 1,
     "max": 5,
     "step": 0.5,
-    "defaultValue": 2.5,
+    "defaultValue": 1.5,
   },
 };
 
@@ -283,7 +283,7 @@ export function createSketch(parameterStore: ParameterStore) {
       
       // Convert blurAmount to hex and use it for the alpha value
       let alphaHex = Math.floor(gridTransparency).toString(16).padStart(2, '0');
-      gridLayer.fill(`#092635${alphaHex}`); // 
+      gridLayer.fill(`#522258${alphaHex}`); // 
       
       gridLayer.noStroke();
       gridLayer.rect(0, 0, p.width, p.height);
@@ -336,7 +336,7 @@ export function createSketch(parameterStore: ParameterStore) {
 
           if (cellValue) {
             gridLayer.noStroke();
-            // gridLayer.fill("#446430");
+            gridLayer.fill("#446430");
             // Size of each grid cell
             // gridLayer.rect(x, y, cellWidth, cellHeight);
 
@@ -432,14 +432,14 @@ export function createSketch(parameterStore: ParameterStore) {
         let cellPos = 25 * cellX + cellY;
         let colorNoiseValue = p.noise(cellX * noiseSize, cellY * noiseSize, time);
 
-        let lightColors = ["#22092C", "#872341", "#BE3144", "#092635"]
-        let darkColors = ["#DDEB9D","#A0C878","#66D2CE","#2DAA9E"]
+        let lightColors = ["#32012F", "#32012F", "#17153B", "#1A3636", "#1A3636",]
+        let darkColors = ["#A19AD3","#A1D6CB","#FFF574","#FF8383"]
 
 
         if (!(cellX >= 0 && cellX <= 24 && cellY >= 0 && cellY <= 24)) {
           // out of bounds color
-          // let lightColorIndex = Math.floor(p.noise(particle.pos.x / 20,particle.pos.y / 20,time / 10000) * lightColors.length) % lightColors.length;
-          let lightColorIndex = Math.floor(p.noise(cellX,cellY,time) * lightColors.length) % lightColors.length;
+          let lightColorIndex = Math.floor(p.noise(particle.pos.x / 20,particle.pos.y / 20,time / 10000) * lightColors.length) % lightColors.length;
+          // let lightColorIndex = Math.floor(p.noise(cellX,cellY,time) * lightColors.length) % lightColors.length;
           particleColor = lightColors[lightColorIndex];
         } else if (cellValue) {
           // dark square
@@ -461,8 +461,8 @@ export function createSketch(parameterStore: ParameterStore) {
           // }
         } else {
           // light square
-          // let lightColorIndex = Math.floor(p.noise(particle.pos.x / 100,particle.pos.y / 100,time * timeMultiplier) * lightColors.length) % lightColors.length;
-          let lightColorIndex = Math.floor(p.noise(cellX,cellY,time) * lightColors.length) % lightColors.length;
+          let lightColorIndex = Math.floor(p.noise(particle.pos.x / 100,particle.pos.y / 100,time * timeMultiplier) * lightColors.length) % lightColors.length;
+          // let lightColorIndex = Math.floor(p.noise(cellX,cellY,time) * lightColors.length) % lightColors.length;
           particleColor = lightColors[lightColorIndex];
 
           // mix between #BFBFD9 and #F9DEC9 based on noise value of cellX, cellY, and time
