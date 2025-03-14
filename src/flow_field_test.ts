@@ -18,19 +18,19 @@ export const numericParameterDefs = {
     "min": 0,
     "max": 0.1,
     "step": 0.0001,
-    "defaultValue": 0.0005,
+    "defaultValue": 0.0168,
   },
   "noiseDetailOctave": {
     "min": 0,
     "max": 10,
     "step": 1,
-    "defaultValue": 5,
+    "defaultValue": 3,
   },
   "noiseDetailFalloff": {
     "min": 0,
     "max": 1,
     "step": 0.05,
-    "defaultValue": 0.5,
+    "defaultValue": 0.45,
   },
   "particleFrequency": {
     "min": 0,
@@ -48,7 +48,7 @@ export const numericParameterDefs = {
     "min": 0,
     "max": 255,
     "step": 1,
-    "defaultValue": 128,
+    "defaultValue": 17,
   },
   "gridSize": {
     "min": 10,
@@ -67,13 +67,13 @@ export const numericParameterDefs = {
     "min": 0.01,
     "max": 0.5,
     "step": 0.01,
-    "defaultValue": 0.1,
+    "defaultValue": 0.27,
   },
   "particleMaxSpeed": {
     "min": 0.5,
     "max": 5,
     "step": 0.1,
-    "defaultValue": 2,
+    "defaultValue": 3.4,
   },
   "particleTrailWeight": {
     "min": 1,

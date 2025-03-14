@@ -2,14 +2,14 @@ import p5 from "p5";
 import React, { useState, useEffect } from "react";
 import { createRoot } from "react-dom/client";
 import { createSketch, numericParameterDefs, initParameterStore, ParameterStore } from "./sketch";
-import { createSketch as createCrimsonSketch, numericParameterDefs as crimsonNumericParameterDefs, initParameterStore as initCrimsonParameterStore } from "./crimsonSketch";
-import { createSketch as createQrSketch, numericParameterDefs as qrNumericParameterDefs, initParameterStore as initQrParameterStore } from "./sketch_qr_1";
-import { createSketch as createQrSketch2, numericParameterDefs as qrNumericParameterDefs2, initParameterStore as initQrParameterStore2 } from "./sketch_qr_2";
+import { createSketch as createCrimsonSketch, numericParameterDefs as crimsonNumericParameterDefs, initParameterStore as initCrimsonParameterStore } from "./flow_field_test";
+import { createSketch as createQrSketch, numericParameterDefs as qrNumericParameterDefs, initParameterStore as initQrParameterStore } from "./broken_qr_2";
+import { createSketch as createQrSketch2, numericParameterDefs as qrNumericParameterDefs2, initParameterStore as initQrParameterStore2 } from "./broken_qr_3";
 import { createSketch as createQrSketch3, numericParameterDefs as qrNumericParameterDefs3, initParameterStore as initQrParameterStore3 } from "./sketch_qr_3";
 import { createSketch as createQrSketch4, numericParameterDefs as qrNumericParameterDefs4, initParameterStore as initQrParameterStore4 } from "./sketch_qr_4";
 import { createSketch as createVoronoiSketch, numericParameterDefs as voronoiNumericParameterDefs, initParameterStore as initVoronoiParameterStore } from "./voronoi_sketch";
 import { createSketch as createQrSketch5, numericParameterDefs as qrNumericParameterDefs5, initParameterStore as initQrParameterStore5 } from "./sketch_qr_5";
-import { createSketch as createQrSketch6, numericParameterDefs as qrNumericParameterDefs6, initParameterStore as initQrParameterStore6 } from "./sketch_qr_6";
+import { createSketch as createQrSketch6, numericParameterDefs as qrNumericParameterDefs6, initParameterStore as initQrParameterStore6 } from "./broken_qr_1";
 import { createSketch as createQrSketch7, numericParameterDefs as qrNumericParameterDefs7, initParameterStore as initQrParameterStore7 } from "./sketch_qr_7";
 // Define sketch types for organization
 type SketchType = "default" | "crimson";
@@ -67,18 +67,18 @@ const sketchConfigs = {
     parameterDefs: crimsonNumericParameterDefs,
     initStore: initCrimsonParameterStore
   },
-  voronoi: {
-    name: "Voronoi Flow Field",
-    createSketch: createVoronoiSketch,
-    parameterDefs: voronoiNumericParameterDefs,
-    initStore: initVoronoiParameterStore
-  },
-  qr3: {
-    name: "Bonus QR Code",
-    createSketch: createQrSketch3,
-    parameterDefs: qrNumericParameterDefs3,
-    initStore: initQrParameterStore3
-  },
+  // voronoi: {
+  //   name: "Voronoi Flow Field",
+  //   createSketch: createVoronoiSketch,
+  //   parameterDefs: voronoiNumericParameterDefs,
+  //   initStore: initVoronoiParameterStore
+  // },
+  // qr3: {
+  //   name: "Bonus QR Code",
+  //   createSketch: createQrSketch3,
+  //   parameterDefs: qrNumericParameterDefs3,
+  //   initStore: initQrParameterStore3
+  // },
 };
 
 // Create initial parameter store
