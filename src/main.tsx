@@ -205,11 +205,10 @@ function TestApp() {
     return null;
   }
 
-  // Determine which sketch is currently active by checking p5Instance
+  // Determine which sketch is currently active - fixed to avoid TypeScript error
   const currentSketchType = Object.keys(sketchConfigs).find(key => {
-    const config = sketchConfigs[key as SketchType];
-    // This is a simple way to find which sketch is active
-    return p5Instance && p5Instance._setupDone;
+    // Instead of checking _setupDone, check if p5Instance exists
+    return p5Instance != null;
   }) as SketchType || "default";
 
   const currentParameterDefs = sketchConfigs[currentSketchType].parameterDefs;
