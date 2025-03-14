@@ -75,3 +75,11 @@ html, body {
     right: 0;
   }
 }
+
+/* Style for the title container */
+.title-container {
+  position: relative;
+  z-index: 10;
+  margin-bottom: 1rem;
+  pointer-events: none; /* Prevents the title from capturing clicks */
+}

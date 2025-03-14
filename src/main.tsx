@@ -21,48 +21,56 @@ let cycleSketch: () => void = () => {};
 const sketchConfigs = {
   default: {
     name: "QR Code 1",
+    title: "this is a valid QR Code",
     createSketch,
     parameterDefs: numericParameterDefs,
     initStore: initParameterStore
   },
   qr5: {
     name: "QR Code 2",
+    title: "this is a valid QR Code",
     createSketch: createQrSketch5,
     parameterDefs: qrNumericParameterDefs5,
     initStore: initQrParameterStore5
   },
   qr7: {
     name: "QR Code 3",
+    title: "this is a valid QR Code",
     createSketch: createQrSketch7,
     parameterDefs: qrNumericParameterDefs7,
     initStore: initQrParameterStore7
   },
   qr4: {
     name: "QR Code 4",
+    title: "this is a valid QR Code",
     createSketch: createQrSketch4,
     parameterDefs: qrNumericParameterDefs4,
     initStore: initQrParameterStore4
   },
   qr6: {
     name: "Broken QR Code 1",
+    title: "this is not a valid QR Code",
     createSketch: createQrSketch6,
     parameterDefs: qrNumericParameterDefs6,
     initStore: initQrParameterStore6
   },
   qr: {
     name: "Broken QR Code 2",
+    title: "this is not a valid QR Code",
     createSketch: createQrSketch,
     parameterDefs: qrNumericParameterDefs,
     initStore: initQrParameterStore
   },
   qr2: {
     name: "Broken QR Code 3",
+    title: "this is not a valid QR Code",
     createSketch: createQrSketch2,
     parameterDefs: qrNumericParameterDefs2,
     initStore: initQrParameterStore2
   },
   crimson: {
     name: "Test Flow Field",
+    title: "this is just a flow field",
     createSketch: createCrimsonSketch,
     parameterDefs: crimsonNumericParameterDefs,
     initStore: initCrimsonParameterStore
@@ -91,21 +99,10 @@ function main(rootElement: HTMLElement) {
   p5Instance = new p5(createSketch(parameterStore), rootElement);
 }
 
-const rootEl = document.getElementById("p5-root");
-if (!rootEl) {
-  throw new Error("Cannot find element root #p5-root");
-}
-main(rootEl);
-
-function TestApp() {
-  const [showParams, setShowParams] = useState(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    return urlParams.get('debug') === 'true';
-  });
-  
+// Split the React component into two parts: Title and Controls
+function TitleComponent() {
   const [sketchType, setSketchType] = useState<SketchType>("default");
-  const [numericParameters, setNumericParameters] = useState(initParameterStore());
-
+  
   // Function to cycle to next sketch
   const cycleToNextSketch = () => {
     const sketchTypes = Object.keys(sketchConfigs) as SketchType[];
@@ -144,22 +141,18 @@ function TestApp() {
     };
   }, [sketchType]); // Re-attach when sketch type changes
 
+  // Get the current title from the sketchConfig
+  const currentTitle = sketchConfigs[sketchType].title;
+
+  // Update the document title when the sketch changes
   useEffect(() => {
-    const url = new URL(window.location.href);
-    if (showParams) {
-      url.searchParams.set('debug', 'true');
-    } else {
-      url.searchParams.delete('debug');
-    }
-    window.history.replaceState({}, '', url);
-  }, [showParams]);
+    document.title = currentTitle;
+  }, [currentTitle]);
 
   useEffect(() => {
     const config = sketchConfigs[sketchType];
     
     const newParams = config.initStore();
-    
-    setNumericParameters(newParams);
     
     parameterStore = newParams;
     
@@ -176,83 +169,137 @@ function TestApp() {
     };
   }, [sketchType]);
 
-  const currentParameterDefs = sketchConfigs[sketchType].parameterDefs;
+  return (
+    <div className="title-container">
+      <h1 className="text-3xl font-bold text-center mb-2 text-gray-800">
+        {currentTitle}
+      </h1>
+      <h3 className="text-sm font-medium text-center mb-8 text-gray-600">
+        click to advance
+      </h3>
+    </div>
+  );
+}
+
+function TestApp() {
+  const [showParams, setShowParams] = useState(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get('debug') === 'true';
+  });
+  
+  // Get current sketch type from global state
+  const [numericParameters, setNumericParameters] = useState(initParameterStore());
+
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    if (showParams) {
+      url.searchParams.set('debug', 'true');
+    } else {
+      url.searchParams.delete('debug');
+    }
+    window.history.replaceState({}, '', url);
+  }, [showParams]);
 
   // Only render the controls panel if showParams is true
   if (!showParams) {
-    return null; // This will hide the entire card when display !== 'true'
+    return null;
   }
+
+  // Determine which sketch is currently active by checking p5Instance
+  const currentSketchType = Object.keys(sketchConfigs).find(key => {
+    const config = sketchConfigs[key as SketchType];
+    // This is a simple way to find which sketch is active
+    return p5Instance && p5Instance._setupDone;
+  }) as SketchType || "default";
+
+  const currentParameterDefs = sketchConfigs[currentSketchType].parameterDefs;
 
   return (
     <>
-      {/* Add the next sketch button to the p5-root div */}
+      {/* Add the next sketch button */}
       <button 
         className="next-sketch-button"
-        onClick={cycleToNextSketch}
+        onClick={cycleSketch}
       >
         Next Sketch
       </button>
 
-      {showParams && (
-        <div className="controls-panel">
-          <div className="mb-6 flex justify-between items-center">
-            <div className="flex-grow">
-              <label htmlFor="sketch-selector" className="block text-gray-700 font-medium mb-2">
-                Select Sketch
-              </label>
-              <select
-                id="sketch-selector"
-                value={sketchType}
-                onChange={(e) => setSketchType(e.target.value as SketchType)}
-                className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                {Object.entries(sketchConfigs).map(([key, config]) => (
-                  <option key={key} value={key}>
-                    {config.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <button
-              onClick={() => setShowParams(!showParams)}
-              className="ml-4 px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300"
+      <div className="controls-panel">
+        <div className="mb-6 flex justify-between items-center">
+          <div className="flex-grow">
+            <label htmlFor="sketch-selector" className="block text-gray-700 font-medium mb-2">
+              Select Sketch
+            </label>
+            <select
+              id="sketch-selector"
+              value={currentSketchType}
+              onChange={(e) => {
+                const newType = e.target.value as SketchType;
+                cycleSketch(); // This will change the global sketch
+              }}
+              className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              {showParams ? 'Hide Parameters' : 'Show Parameters'}
-            </button>
+              {Object.entries(sketchConfigs).map(([key, config]) => (
+                <option key={key} value={key}>
+                  {config.name}
+                </option>
+              ))}
+            </select>
           </div>
-          
-          <h2 className="text-xl font-bold mb-6 text-gray-700">Parameters</h2>
-          {Object.entries(currentParameterDefs).map(([key, value]) => (
-            <div key={key} className="mb-4 flex items-center gap-4">
-              <label className="w-32 font-medium text-gray-700">{key}</label>
-              <input
-                type="range"
-                min={value.min}
-                max={value.max}
-                step={value.step}
-                value={numericParameters[key as keyof typeof numericParameters]}
-                className="flex-grow"
-                onChange={(e) => {
-                  console.log(e.target.value, typeof e.target.value);
-                  const newValue = parseFloat(e.target.value);
-                  setNumericParameters({...numericParameters, [key]: newValue});
-                  parameterStore[key as keyof typeof parameterStore] = newValue;
-                }}
-              />
-              <span className="w-16 text-right text-gray-600">
-                {numericParameters[key as keyof typeof numericParameters]}
-              </span>
-            </div>
-          ))}
+          <button
+            onClick={() => setShowParams(!showParams)}
+            className="ml-4 px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300"
+          >
+            {showParams ? 'Hide Parameters' : 'Show Parameters'}
+          </button>
         </div>
-      )}
+        
+        <h2 className="text-xl font-bold mb-6 text-gray-700">Parameters</h2>
+        {Object.entries(currentParameterDefs).map(([key, value]) => (
+          <div key={key} className="mb-4 flex items-center gap-4">
+            <label className="w-32 font-medium text-gray-700">{key}</label>
+            <input
+              type="range"
+              min={value.min}
+              max={value.max}
+              step={value.step}
+              value={numericParameters[key as keyof typeof numericParameters]}
+              className="flex-grow"
+              onChange={(e) => {
+                console.log(e.target.value, typeof e.target.value);
+                const newValue = parseFloat(e.target.value);
+                setNumericParameters({...numericParameters, [key]: newValue});
+                parameterStore[key as keyof typeof parameterStore] = newValue;
+              }}
+            />
+            <span className="w-16 text-right text-gray-600">
+              {numericParameters[key as keyof typeof numericParameters]}
+            </span>
+          </div>
+        ))}
+      </div>
     </>
   );
 }
 
+// Render the title component to the title-root div
+const titleContainer = document.getElementById("title-root");
+if (titleContainer) {
+  const titleRoot = createRoot(titleContainer);
+  titleRoot.render(<TitleComponent />);
+}
+
+// Render the controls to the original react-root div
 const container = document.getElementById("react-root");
 if (!container) {
   throw new Error("Cannot find element root #react-root");
 }
 const root = createRoot(container);
 root.render(<TestApp />);
+
+// Initialize the P5 instance
+const rootEl = document.getElementById("p5-root");
+if (!rootEl) {
+  throw new Error("Cannot find element root #p5-root");
+}
+main(rootEl);
