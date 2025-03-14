@@ -19,7 +19,7 @@ export const numericParameterDefs = {
     "min": 0,
     "max": 0.1,
     "step": 0.0001,
-    "defaultValue": 0.0026,
+    "defaultValue": 0.0183,
   },
   "noiseDetailOctave": {
     "min": 0,
@@ -68,19 +68,19 @@ export const numericParameterDefs = {
     "min": 0.01,
     "max": 0.5,
     "step": 0.01,
-    "defaultValue": 0.17,
+    "defaultValue": 0.03,
   },
   "particleMaxSpeed": {
     "min": 0.5,
     "max": 5,
     "step": 0.1,
-    "defaultValue": 5,
+    "defaultValue": 1,
   },
   "particleTrailWeight": {
     "min": 1,
     "max": 5,
     "step": 0.5,
-    "defaultValue": 2.5,
+    "defaultValue": 5,
   },
 };
 

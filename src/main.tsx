@@ -20,28 +20,22 @@ let cycleSketch: () => void = () => {};
 // Create a map of sketch configurations
 const sketchConfigs = {
   default: {
-    name: "Test Field",
+    name: "QR Code 1",
     createSketch,
     parameterDefs: numericParameterDefs,
     initStore: initParameterStore
   },
-  qr: {
-    name: "QR Code",
-    createSketch: createQrSketch,
-    parameterDefs: qrNumericParameterDefs,
-    initStore: initQrParameterStore
-  },
-  qr2: {
+  qr5: {
     name: "QR Code 2",
-    createSketch: createQrSketch2,
-    parameterDefs: qrNumericParameterDefs2,
-    initStore: initQrParameterStore2
+    createSketch: createQrSketch5,
+    parameterDefs: qrNumericParameterDefs5,
+    initStore: initQrParameterStore5
   },
-  qr3: {
+  qr7: {
     name: "QR Code 3",
-    createSketch: createQrSketch3,
-    parameterDefs: qrNumericParameterDefs3,
-    initStore: initQrParameterStore3
+    createSketch: createQrSketch7,
+    parameterDefs: qrNumericParameterDefs7,
+    initStore: initQrParameterStore7
   },
   qr4: {
     name: "QR Code 4",
@@ -49,36 +43,42 @@ const sketchConfigs = {
     parameterDefs: qrNumericParameterDefs4,
     initStore: initQrParameterStore4
   },
-  qr5: {
-    name: "QR Code 5",
-    createSketch: createQrSketch5,
-    parameterDefs: qrNumericParameterDefs5,
-    initStore: initQrParameterStore5
-  },
   qr6: {
-    name: "QR Code 6",
+    name: "Broken QR Code 1",
     createSketch: createQrSketch6,
     parameterDefs: qrNumericParameterDefs6,
     initStore: initQrParameterStore6
   },
-  qr7: {
-    name: "QR Code 7",
-    createSketch: createQrSketch7,
-    parameterDefs: qrNumericParameterDefs7,
-    initStore: initQrParameterStore7
+  qr: {
+    name: "Broken QR Code 2",
+    createSketch: createQrSketch,
+    parameterDefs: qrNumericParameterDefs,
+    initStore: initQrParameterStore
+  },
+  qr2: {
+    name: "Broken QR Code 3",
+    createSketch: createQrSketch2,
+    parameterDefs: qrNumericParameterDefs2,
+    initStore: initQrParameterStore2
   },
   crimson: {
-    name: "Crimson Flow Field",
+    name: "Test Flow Field",
     createSketch: createCrimsonSketch,
     parameterDefs: crimsonNumericParameterDefs,
     initStore: initCrimsonParameterStore
   },
   voronoi: {
-    name: "Voronoi",
+    name: "Voronoi Flow Field",
     createSketch: createVoronoiSketch,
     parameterDefs: voronoiNumericParameterDefs,
     initStore: initVoronoiParameterStore
-  }
+  },
+  qr3: {
+    name: "Bonus QR Code",
+    createSketch: createQrSketch3,
+    parameterDefs: qrNumericParameterDefs3,
+    initStore: initQrParameterStore3
+  },
 };
 
 // Create initial parameter store

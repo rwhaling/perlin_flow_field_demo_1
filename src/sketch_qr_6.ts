@@ -49,7 +49,7 @@ export const numericParameterDefs = {
     "min": 0,
     "max": 255,
     "step": 1,
-    "defaultValue": 1,
+    "defaultValue": 10,
   },
   "gridSize": {
     "min": 10,
