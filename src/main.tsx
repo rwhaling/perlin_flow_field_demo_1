@@ -11,6 +11,7 @@ import { createSketch as createVoronoiSketch, numericParameterDefs as voronoiNum
 import { createSketch as createQrSketch5, numericParameterDefs as qrNumericParameterDefs5, initParameterStore as initQrParameterStore5 } from "./sketch_qr_5";
 import { createSketch as createQrSketch6, numericParameterDefs as qrNumericParameterDefs6, initParameterStore as initQrParameterStore6 } from "./broken_qr_1";
 import { createSketch as createQrSketch7, numericParameterDefs as qrNumericParameterDefs7, initParameterStore as initQrParameterStore7 } from "./sketch_qr_7";
+import { createSketch as createPrintSketch1, numericParameterDefs as printNumericParameterDefs1, initParameterStore as initPrintParameterStore1 } from "./print_sketch_1";
 // Define sketch types for organization
 type SketchType = "default" | "crimson";
 
@@ -21,10 +22,17 @@ let cycleSketch: () => void = () => {};
 const sketchConfigs = {
   default: {
     name: "QR Code 1",
-    title: "this is a valid QR Code",
+    title: "this is a a print sketch",
     createSketch,
     parameterDefs: numericParameterDefs,
     initStore: initParameterStore
+  },
+  print1: {
+    name: "Print Sketch 1",
+    title: "plotter sketch",
+    createSketch: createPrintSketch1,
+    parameterDefs: printNumericParameterDefs1,
+    initStore: initPrintParameterStore1
   },
   qr5: {
     name: "QR Code 2",
@@ -175,7 +183,7 @@ function TitleComponent() {
         {currentTitle}
       </h1>
       <h3 className="text-sm font-medium text-center mb-8 text-gray-600">
-        click to advance
+        
       </h3>
     </div>
   );

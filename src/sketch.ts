@@ -1,5 +1,4 @@
 import p5 from "p5";
-// import qrCodeImg from "./cropped_qr_whaling_dev.png";
 
 // Parameter definitions moved from main.tsx to here
 export const numericParameterDefs = {
@@ -7,7 +6,7 @@ export const numericParameterDefs = {
     "min": 0,
     "max": 0.01,
     "step": 0.00001,
-    "defaultValue": 0.0004, // Set to match initial value
+    "defaultValue": 0.00005, // Set to match initial value
   },
   "noiseSize": {
     "min": 0,
@@ -19,25 +18,25 @@ export const numericParameterDefs = {
     "min": 0,
     "max": 0.1,
     "step": 0.0001,
-    "defaultValue": 0.0026,
+    "defaultValue": 0.1,
   },
   "noiseDetailOctave": {
     "min": 0,
     "max": 10,
     "step": 1,
-    "defaultValue": 4,
+    "defaultValue": 3,
   },
   "noiseDetailFalloff": {
     "min": 0,
     "max": 1,
     "step": 0.05,
-    "defaultValue": 0.65,
+    "defaultValue": 0.45,
   },
   "particleFrequency": {
     "min": 0,
     "max": 360,
     "step": 4,
-    "defaultValue": 0, // Set to match initial value
+    "defaultValue": 10, // Set to match initial value
   },
   "gridTransparency": {
     "min": 0,
@@ -49,7 +48,7 @@ export const numericParameterDefs = {
     "min": 0,
     "max": 255,
     "step": 1,
-    "defaultValue": 1,
+    "defaultValue": 17,
   },
   "gridSize": {
     "min": 10,
@@ -62,25 +61,45 @@ export const numericParameterDefs = {
     "min": 50,
     "max": 1000, 
     "step": 10,
-    "defaultValue": 1000,
+    "defaultValue": 300,
   },
   "particleForceStrength": {
     "min": 0.01,
     "max": 0.5,
     "step": 0.01,
-    "defaultValue": 0.18,
+    "defaultValue": 0.27,
   },
   "particleMaxSpeed": {
     "min": 0.5,
     "max": 5,
     "step": 0.1,
-    "defaultValue": 2,
+    "defaultValue": 3.4,
   },
   "particleTrailWeight": {
     "min": 1,
     "max": 5,
     "step": 0.5,
-    "defaultValue": 2.5,
+    "defaultValue": 2,
+  },
+  // New parameter for configurable lines per region
+  "linesPerRegion": {
+    "min": 1,
+    "max": 10,
+    "step": 1,
+    "defaultValue": 6, // Default to current behavior (2 lines)
+  },
+  // New parameters for line length control
+  "lineMinLength": {
+    "min": 50,
+    "max": 200,
+    "step": 5,
+    "defaultValue": 20, // Default to current hardcoded value
+  },
+  "lineMaxLength": {
+    "min": 100,
+    "max": 400,
+    "step": 5,
+    "defaultValue": 150, // Default maximum length
   },
 };
 
@@ -105,14 +124,16 @@ export function initParameterStore(): ParameterStore {
 export function createSketch(parameterStore: ParameterStore) {
   return function sketch(p: p5) {
     let font: p5.Font;
-    let qrImage: p5.Image;
+    let startTime = p.millis();
     // Create a separate graphics layer for particles
     let particleLayer: p5.Graphics;
     let gridLayer: p5.Graphics;
-    let particleMask: p5.Graphics;
-    let qrData: boolean[] = [];
-    let canvasSize: number;
-    let frameCount: number = 0;
+    let regions: any[];
+    let lines: any[];
+    let lineStepFactor: any[];
+    let lineColors: any[];
+
+    
     // Improved particle structure with vectors and previous position
     interface SimpleParticle {
       pos: p5.Vector;
@@ -126,387 +147,295 @@ export function createSketch(parameterStore: ParameterStore) {
     
     p.preload = function() {
       // can preload assets here...
-        qrImage = p.loadImage("./cropped_qr_4.png");
-      // qrImage = p.loadImage(qrCodeImg);
-
-      // get the width and height of the image
-      console.log("loaded image, width:", qrImage.width, "height:", qrImage.height);
       font = p.loadFont(
         new URL("/public/fonts/inconsolata.otf", import.meta.url).href
       );
     };
     
     p.setup = function() {
-      // Determine the canvas size based on screen width
-      canvasSize = Math.min(500, window.innerWidth - 20); // 20px buffer
-      
-      p.createCanvas(canvasSize, canvasSize, p.WEBGL);
+      p.createCanvas(1000, 500, p.WEBGL);
+      p.translate(-p.width/2, -p.height/2); // Move to top-left for image drawing
       // Create particle layer with same dimensions and renderer
-      particleLayer = p.createGraphics(canvasSize, canvasSize, p.WEBGL);
+      particleLayer = p.createGraphics(500, 500, p.WEBGL);
       particleLayer.setAttributes({ alpha: true });
-      particleMask = p.createGraphics(canvasSize, canvasSize, p.WEBGL);
-      particleMask.setAttributes({ alpha: true });
-      particleMask.fill("#FFFFFFDD");
-      particleMask.rect(0, 0, canvasSize, canvasSize);
-      gridLayer = p.createGraphics(canvasSize, canvasSize, p.WEBGL);      
+      gridLayer = p.createGraphics(500, 500, p.WEBGL);      
 
-      console.log("scanning image, width:", qrImage.width, "height:", qrImage.height, "density:", (qrImage as any).pixelDensity());
-      let qrWidth = qrImage.width;
-      let qrHeight = qrImage.height;
-      let qrRowCount = 25;
-      let qrColCount = 25;
-      let qrRowWidth = 9;
-      let qrRowHeight = 9;
-      let qrOffset = 4;
-      console.log("qrRowWidth:", qrRowWidth, "qrRowHeight:", qrRowHeight);
-      for (let i = 0; i <= qrRowCount; i++) {
-        for (let j = 0; j <= qrColCount; j++) {
-          let qrOffsetX = i * qrRowWidth + qrOffset;
-          let qrOffsetY = j * qrRowHeight + qrOffset;
-          let qrValue = qrImage.get(qrOffsetX, qrOffsetY);
-          let logicalValue = qrValue[0] < 128;
-          qrData[25 * i + j] = logicalValue;
-          console.log("qrValue:", i, j, qrOffsetX, qrOffsetY, qrValue, logicalValue);
-
-        }
-      }
-
-      // p.background("#FFF8E6");
-      // ...
-    };
-    
-    // Handle window resizing
-    p.windowResized = function() {
-      // Update canvas size when window is resized
-      const newSize = Math.min(500, window.innerWidth - 20);
+      regions = [  // 6 regions, 100 x 500, 25px padding each side
+        [75, 25, 175, 475],
+        [225, 25, 325, 475],
+        [375, 25, 475, 475],
+        [525, 25, 625, 475],
+        [675, 25, 775, 475],
+        [825, 25, 925, 475],        
+      ]
+      lines = [];
+      lineStepFactor = [];
       
-      // Only resize if the size actually changed
-      if (newSize !== canvasSize) {
-        canvasSize = newSize;
-        p.resizeCanvas(canvasSize, canvasSize);
+      for (let r = 0; r < regions.length; r++) {
+        const region = regions[r];
+        const linesPerRegion = Math.floor(parameterStore.linesPerRegion);
+        const minLineLength = parameterStore.lineMinLength;
+        const maxLineLength = parameterStore.lineMaxLength;
         
-        // Recreate the layers with new size
-        particleLayer = p.createGraphics(canvasSize, canvasSize, p.WEBGL);
-        particleLayer.setAttributes({ alpha: true });
-        particleMask = p.createGraphics(canvasSize, canvasSize, p.WEBGL);
-        particleMask.setAttributes({ alpha: true });
-        particleMask.fill("#FFFFFFDD");
-        particleMask.rect(0, 0, canvasSize, canvasSize);
-        gridLayer = p.createGraphics(canvasSize, canvasSize, p.WEBGL);
+        // Create array to store line equations for this region's partition checking
+        const regionLines = [];
         
-        // Reset particles for the new canvas size
-        particles = [];
-      }
-    };
-    
-    // Create a new particle with vector properties
-    function createParticle(x: number, y: number): SimpleParticle {
-      const pos = p.createVector(x, y);
-      return {
-        pos: pos,
-        vel: p.createVector(0, 0),
-        acc: p.createVector(0, 0),
-        prevPos: pos.copy()
-      };
-    }
-    
-    // Update particle physics
-    function updateParticle(particle: SimpleParticle, flowAngle: number, updateVelocity: boolean = true): void {
-      // Save previous position for drawing
-      particle.prevPos.set(particle.pos);
-      
-      // Create a force vector from the flow field angle
-      const force = p5.Vector.fromAngle(flowAngle);
-      force.mult(parameterStore.particleForceStrength); // Force magnitude from parameters
-      
-      if (updateVelocity) {
-        // Apply force to acceleration
-        particle.acc.add(force);
-        
-        // Update velocity with acceleration
-        particle.vel.add(particle.acc);
-      
-        // Limit velocity to prevent excessive speed - use parameter
-        particle.vel.limit(parameterStore.particleMaxSpeed);
-      }
-      
-      // Update position with velocity
-      particle.pos.add(particle.vel);
-      
-      // Reset acceleration for next frame
-      particle.acc.mult(0);
-      
-      // Handle edges by wrapping around
-      if (particle.pos.x < -p.width/2) {
-        particle.pos.x = p.width/2;
-        particle.prevPos.x = p.width/2;
-      }
-      if (particle.pos.x > p.width/2) {
-        particle.pos.x = -p.width/2;
-        particle.prevPos.x = -p.width/2;
-      }
-      if (particle.pos.y < -p.height/2) {
-        particle.pos.y = p.height/2;
-        particle.prevPos.y = p.height/2;
-      }
-      if (particle.pos.y > p.height/2) {
-        particle.pos.y = -p.height/2;
-        particle.prevPos.y = -p.height/2;
-      }
-    }
-    
-    p.draw = function() {
-      let timeMultiplier = parameterStore.timeMultiplier;
-      let noiseSize = parameterStore.noiseSize;
-      let noiseScale = parameterStore.noiseScale;
-      let falloff = parameterStore.noiseDetailFalloff;
-      let octaves = parameterStore.noiseDetailOctave;
-      let particleFrequency = parameterStore.particleFrequency;
-      let gridSize = parameterStore.gridSize;
-      let gridTransparency = parameterStore.gridTransparency;
-   
-      // p.clear();
-      frameCount++;
-
-      // Set noise detail for both canvases
-      p.noiseDetail(octaves, falloff);
-      gridLayer.noiseDetail(octaves, falloff);
-      particleLayer.noiseDetail(octaves, falloff);
-
-      // Clear the particle layer each frame with transparent background
-      // particleLayer.clear();
-
-      // Instead of clearing, draw a semi-transparent black rectangle
-      // that partially obscures previous frames
-      gridLayer.push();
-      gridLayer.translate(-p.width/2, -p.height/2); // Move to top-left in WEBGL mode
-      
-      // Convert blurAmount to hex and use it for the alpha value
-      let alphaHex = Math.floor(gridTransparency).toString(16).padStart(2, '0');
-      gridLayer.fill(`#092635${alphaHex}`); // 
-      
-      gridLayer.noStroke();
-      gridLayer.rect(0, 0, p.width, p.height);
-      gridLayer.pop();
-      
-      // get the current time
-      let time = p.millis() * timeMultiplier;
-      
-      // Calculate dimensions and offsets for WEBGL coordinate system
-      let insetCells = 2;
-      let totalWidth = p.width;
-      let totalHeight = p.height;
-
-      let cellWidth = totalWidth / ((25 + (insetCells * 2)));
-      let cellHeight = totalHeight / ((25 + (insetCells * 2)));
-
-      let startX = -p.width / 2 + (cellWidth * insetCells);
-      let startY = -p.height / 2 + (cellHeight * insetCells);
-      let endX = p.width / 2 - (cellWidth * insetCells + 1);
-      let endY = p.height / 2 - (cellHeight * insetCells + 1);
-      // let startX = -totalWidth/2 * (1 - insetPercentage);
-      // let startY = -totalHeight/2 * (1 - insetPercentage);
-
-      // const startX = -p.width/2 * (1 - insetPercentage);
-      // const startY = -p.height/2 * (1 - insetPercentage);
-      // const endX = p.width/2 * (1 - insetPercentage);
-      // const endY = p.height/2 * (1 - insetPercentage);
-      const noiseOffsetX = p.width/2;  // Offset for consistent noise sampling
-      const noiseOffsetY = p.height/2;
-      
-      
-      // Instead of iterating over canvas dimensions, use grid indices from 0 to 24
-      for (let i = 0; i <= 24; i++) {
-        for (let j = 0; j <= 24; j++) {
-          // Map grid indices to canvas positions with inset
-          // const x = p.map(i, 0, 24, startX, endX);
-          // const y = p.map(j, 0, 24, startY, endY);
-
-          const x = -p.width / 2 + (i + insetCells) * cellWidth;
-          const y = (j + insetCells) * cellHeight - p.height/2;
+        // Generate lines for this region
+        for (let lineIndex = 0; lineIndex < linesPerRegion; lineIndex++) {
+          let line_dist = 0;
+          let x1, y1, x2, y2;
           
-          let angle = p.noise((x + noiseOffsetX) * noiseScale, (y + noiseOffsetY) * noiseScale, time);
-          let angleRadians = 2 * angle * Math.PI * 2;
-          
-          // Calculate vector endpoint
-
-          // look up the cell in the qrData array
-          let cellValue = qrData[25 * i + j];
-          // console.log("cellValue:", i, j, cellValue);
-
-          if (cellValue) {
-            gridLayer.noStroke();
-            // gridLayer.fill("#446430");
-            // Size of each grid cell
-            // gridLayer.rect(x, y, cellWidth, cellHeight);
-
-            gridLayer.stroke("#446430");
-            gridLayer.strokeWeight(1);
+          if (lineIndex === 0) {
+            // First line - generate randomly with minimum and maximum distance
+            let attempts = 0;
+            const maxAttempts = 50;
             
-            // Draw the line
-            let x1 = x + (cellWidth * 0.5)
-            let y1 = y + (cellHeight * 0.5)
-            let x2 = x1 + (cellWidth * 0.3) * Math.cos(angleRadians);
-            let y2 = y1 + (cellHeight * 0.3) * Math.sin(angleRadians);
+            while ((line_dist < minLineLength || line_dist > maxLineLength) && attempts < maxAttempts) {
+              x1 = p.random(region[0] + 25, region[2] - 25);
+              y1 = p.random(region[1] + 25, region[3] - 25);
+              x2 = p.random(region[0] + 25, region[2] - 25);
+              y2 = p.random(region[1] + 25, region[3] - 25);
+              line_dist = p.dist(x1, y1, x2, y2);
+              attempts++;
+            }
             
-            // Set explicit stroke color and weight before drawing the line
-            gridLayer.stroke("#D6CFB4");
-            gridLayer.strokeWeight(1);
+            // If we couldn't find a line within length constraints, use best attempt
+            if (attempts >= maxAttempts) {
+              // Generate one more time, prioritizing minimum length
+              x1 = p.random(region[0] + 25, region[2] - 25);
+              y1 = p.random(region[1] + 25, region[3] - 25);
+              x2 = p.random(region[0] + 25, region[2] - 25);
+              y2 = p.random(region[1] + 25, region[3] - 25);
+              line_dist = p.dist(x1, y1, x2, y2);
+            }
             
-            // Draw the line
-            // gridLayer.line(x1, y1, x2, y2);
-  
-            // gridLayer.line(x, y, x1, y1);
+            // Add to lines array and store line equation for partition checking
+            lines.push([x1, y1, x2, y2]);
+            lineStepFactor.push(p.random(10, 40));
+            
+            // Calculate line equation: ax + by + c = 0
+            const a = y2 - y1;
+            const b = x1 - x2;
+            const c = x2 * y1 - x1 * y2;
+            regionLines.push({ a, b, c });
+          } else {
+            // Subsequent lines - determine best partition
+            
+            // Function to determine which side of a line a point is on
+            const lineSide = (point, lineEq) => {
+              return lineEq.a * point.x + lineEq.b * point.y + lineEq.c;
+            };
+            
+            // Generate and test sample points
+            const numSamplePoints = 100;
+            const samplePoints = [];
+            
+            for (let i = 0; i < numSamplePoints; i++) {
+              samplePoints.push({
+                x: p.random(region[0] + 25, region[2] - 25),
+                y: p.random(region[1] + 25, region[3] - 25),
+                partitionId: 0
+              });
+            }
+            
+            // Assign each point to a partition based on existing lines
+            for (let i = 0; i < samplePoints.length; i++) {
+              let partitionId = 0;
+              const point = samplePoints[i];
+              
+              // Each line doubles the number of potential partitions
+              for (let j = 0; j < regionLines.length; j++) {
+                const side = lineSide(point, regionLines[j]);
+                if (side > 0) {
+                  partitionId |= (1 << j);
+                }
+              }
+              
+              point.partitionId = partitionId;
+            }
+            
+            // Count points in each partition
+            const partitionCounts = {};
+            for (const point of samplePoints) {
+              if (!partitionCounts[point.partitionId]) {
+                partitionCounts[point.partitionId] = 0;
+              }
+              partitionCounts[point.partitionId]++;
+            }
+            
+            // Find largest partition
+            let largestPartition = 0;
+            let largestCount = 0;
+            for (const [id, count] of Object.entries(partitionCounts)) {
+              if (count > largestCount) {
+                largestCount = count;
+                largestPartition = Number(id);
+              }
+            }
+            
+            // Filter points to largest partition
+            const pointsInLargestPartition = samplePoints.filter(
+              point => point.partitionId === largestPartition
+            );
+            
+            // Generate a new line in the largest partition
+            let attempts = 0;
+            const maxAttempts = 30;
+            
+            while ((line_dist < minLineLength || line_dist > maxLineLength) && attempts < maxAttempts) {
+              // Select two random points from the largest partition
+              if (pointsInLargestPartition.length < 2) break;
+              
+              const point1Index = Math.floor(p.random(pointsInLargestPartition.length));
+              let point2Index;
+              do {
+                point2Index = Math.floor(p.random(pointsInLargestPartition.length));
+              } while (point1Index === point2Index && pointsInLargestPartition.length > 1);
+              
+              x1 = pointsInLargestPartition[point1Index].x;
+              y1 = pointsInLargestPartition[point1Index].y;
+              x2 = pointsInLargestPartition[point2Index].x;
+              y2 = pointsInLargestPartition[point2Index].y;
+              
+              line_dist = p.dist(x1, y1, x2, y2);
+              attempts++;
+            }
+            
+            // If we found a suitable line or made best effort
+            if (line_dist >= minLineLength || attempts >= maxAttempts) {
+              // Add new line to arrays
+              lines.push([x1, y1, x2, y2]);
+              lineStepFactor.push(p.random(10, 40));
+              
+              // Calculate and store line equation
+              const a = y2 - y1;
+              const b = x1 - x2;
+              const c = x2 * y1 - x1 * y2;
+              regionLines.push({ a, b, c });
+            }
           }
         }
       }
 
-      // After drawing the vector field, handle particles
-      
-      // Chance to spawn a new particle
-      if (p.random(100) < 100/particleFrequency) {
-        // Create particle at random position
-        particles.push(createParticle(
-          p.random(startX, endX),
-          p.random(startY, endY)
-        ));
+      // let's populate lineColors with random lerps between black and 4C585B
+      lineColors = [];
+      for (let i = 0; i < lines.length; i++) {
+        lineColors.push(p.lerpColor(p.color(0), p.color("#2C3639"), p.random(0, 1)));
       }
-      
-      // Maximum number of particles - now from parameters
-      while (particles.length > parameterStore.particleMaxCount) {
-        particles.shift(); // Remove oldest particles if we have too many
-      }
-      
-      // Draw particles to the particle layer
-      particleLayer.push();
-      particleLayer.noStroke();
-      particleLayer.blendMode(p.REMOVE as any);
-      particleLayer.blendMode(p.MULTIPLY as any);
+    }
+    
 
-
-      // draw a rectangle over the whole canvase with the trail transparency
-      // particleLayer.tint(255,parameterStore.trailTransparency);
-      if (frameCount % 2 == 0) {
-        particleLayer.fill("#000000" + parameterStore.trailTransparency.toString(16).padStart(2, '0'));
-      }
-      // particleLayer.fill("#FFFFFF04");
-
-      particleLayer.rect(-particleLayer.width/2, -particleLayer.height/2, particleLayer.width, particleLayer.height);
-      
-      // Update and draw all particles on the particle layer
-      for (let i = 0; i < particles.length; i++) {
-        const particle = particles[i];
-
-        // calculate which grid cell the particle is in
-        let cellX = Math.floor((particle.pos.x + p.width/2) / cellWidth);
-        let cellY = Math.floor((particle.pos.y + p.height/2) / cellHeight);
-        // console.log("particle:", i, "cell:", cellX, cellY);
-        // adjust cells for inset
-        cellX -= insetCells;
-        cellY -= insetCells;
-        // console.log("adjusted cell:", cellX, cellY);
-        
-        // Get noise angle at current position (same as in the grid)
-        let noiseValue = p.noise(
-          (particle.pos.x + noiseOffsetX) * noiseScale, 
-          (particle.pos.y + noiseOffsetY) * noiseScale, 
-          time
-        );
-        let angleRadians = 2 * noiseValue * Math.PI * 2;
-        
-        // Update particle physics based on flow field (only update velocity if the particle is in a cell that is part of the qr code)
-        if (cellX >= 0 && cellX <= 24 && cellY >= 0 && cellY <= 24) {
-          updateParticle(particle, angleRadians, true);
-        } else {
-          updateParticle(particle, angleRadians, false);
-        }
-        
-        // Draw the particle on the particle layer
-        particleLayer.blendMode(p.BLEND);
-
-        // let particleColor = "#F05D5E";
-        let particleColor: string;
-        
-        // if the particle is in a cell that is part of the qr code and has value true, use a different color
-        let cellValue = qrData[25 * cellX + cellY];
-        let cellPos = 25 * cellX + cellY;
-        let colorNoiseValue = p.noise(cellX * noiseSize, cellY * noiseSize, time);
-
-        let lightColors = ["#22092C", "#872341", "#BE3144", "#092635"]
-        let darkColors = ["#DDEB9D","#A0C878","#66D2CE","#2DAA9E"]
-
-
-        if (!(cellX >= 0 && cellX <= 24 && cellY >= 0 && cellY <= 24)) {
-          // out of bounds color
-          // let lightColorIndex = Math.floor(p.noise(particle.pos.x / 20,particle.pos.y / 20,time / 10000) * lightColors.length) % lightColors.length;
-          let lightColorIndex = Math.floor(p.noise(cellX,cellY,time) * lightColors.length) % lightColors.length;
-          particleColor = lightColors[lightColorIndex];
-        } else if (cellValue) {
-          // dark square
-          // lerp between #DD4B1A and #FF4B3E based on noise value of cellX, cellY, and time
-          // particleColor = p.lerpColor(p.color("#DD4B1A"), p.color("#FF4B3E"), colorNoiseValue).toString();
-          let cellColors = darkColors;
-          let particleColorNoise = p.noise(cellX,cellY,time)
-          let particleColorIndex = Math.floor(particleColorNoise * cellColors.length) % cellColors.length;
-          particleColor = cellColors[particleColorIndex];
-
-          // if (colorNoiseValue < 0.25) {
-          //   particleColor = "#FB2576";
-          // } else if (colorNoiseValue < 0.5) {
-          //   particleColor = "#FF4949";
-          // } else if (colorNoiseValue < 0.75) {
-          //   particleColor = "#FF8D29";
-          // } else {
-          //   particleColor = "#E94560";
-          // }
-        } else {
-          // light square
-          // let lightColorIndex = Math.floor(p.noise(particle.pos.x / 100,particle.pos.y / 100,time * timeMultiplier) * lightColors.length) % lightColors.length;
-          let lightColorIndex = Math.floor(p.noise(cellX,cellY,time) * lightColors.length) % lightColors.length;
-          particleColor = lightColors[lightColorIndex];
-
-          // mix between #BFBFD9 and #F9DEC9 based on noise value of cellX, cellY, and time
-          // particleColor = p.lerpColor(p.color("#BFBFD9"), p.color("#F9DEC9"), colorNoiseValue).toString();
-        }
-
-        particleLayer.fill(particleColor);
-        particleLayer.stroke(particleColor);
-        particleLayer.strokeWeight(parameterStore.particleTrailWeight); // Adjustable trail weight
-        particleLayer.line(
-          particle.prevPos.x, particle.prevPos.y,
-          particle.pos.x, particle.pos.y
-        );
-        
-        particleLayer.noStroke();
-        particleLayer.fill(particleColor);
-        particleLayer.circle(particle.pos.x, particle.pos.y, parameterStore.particleTrailWeight);
-      }
-      particleLayer.pop();
-      
-      // Overlay the particle layer on the main canvas
-      p.push();
+    let frameCount = 0;
+    p.draw = function() {
+      frameCount++;
       p.translate(-p.width/2, -p.height/2); // Move to top-left for image drawing
-      p.imageMode(p.CORNER);
-      p.blendMode(p.BLEND);
-      p.image(gridLayer, 0, 0, p.width, p.height);
-      // p.image(qrImage, startX, startY, endX - startX, endY - startY);
-      // p.image(qrImage, 0,0, p.width, p.height);
+      let time = startTime;
+      time = frameCount * 0;
+      p.background("#FFF8E6");
 
-      // iterate over the qrData array and draw a red circle for each true value
-      // for (let x = 0; x < 25; x++) {
-      //   for (let y = 0; y < 25; y++) {
-      //     if (qrData[25 * x + y]) {
-      //       let xSize = p.width / 25;
-      //       let ySize = p.height / 25;
-      //       p.noStroke();
-      //       p.fill("#8D0B41");
-      //       p.circle((x + 0.5) * xSize, (y + 0.5) * ySize, xSize);
-      //     }
-      //   }
-      // }
+      // draw a rectangle around each region
+      for (let r = 0; r < regions.length; r++) {
+        console.log("REGION",regions[r]);
+        let region = regions[r];
+        p.noFill();
+        p.stroke("#2C3639");
+        p.strokeWeight(2);
+        p.rect(region[0], region[1], region[2] - region[0], region[3] - region[1]);
+      }
 
-      p.image(particleLayer, 0, 0, p.width, p.height);
-      p.pop();
+      for (let l = 0; l < lines.length; l++) {
+        console.log(lines);
+        let x1 = lines[l][0];
+        let y1 = lines[l][1];
+        let x2 = lines[l][2];
+        let y2 = lines[l][3];
+        console.log(l, x1, y1, x2, y2);
+        // p.line(x1, y1, x2, y2);
+        // iterate over the line in 100 steps and draw a line with x/y perturbed by noise
+        // draw the line by first computing the even step along the line, then use the noise to displace on an axis perpendicular to the line 
+
+        let steps = 1000;
+        p.noiseDetail(2, 0.5);
+
+        let line_length = p.dist(x1, y1, x2, y2);
+
+        // let lineStepFactor = p.random(5,40)
+
+        let lineStepFreq = Math.ceil((200 / line_length) * lineStepFactor[l]);
+
+        // do it again with an offset to the noise
+        // for the first/last 10% of the line, blend the noise with the original line 
+        for (let i = 0; i < steps; i++) {
+          let x = p.lerp(x1, x2, i/steps);
+          let y = p.lerp(y1, y2, i/steps);
+          let angle = p.atan2(y2 - y1, x2 - x1);
+          let perpAngle = angle + p.PI/2;
+
+          // Simple soft absolute value function - smooth everywhere
+          let smoothAbsNoise = (noiseVal) => {
+            // Shift noise to be centered at 0
+            let centered = noiseVal - 0.5;
+            
+            // Soft absolute value using sqrt(x² + ε)
+            let epsilon = 0.01; // Controls smoothness at zero
+            return Math.sqrt(centered * centered + epsilon);
+          };
+          
+          let noise1 = smoothAbsNoise(p.noise(x * 0.008, i * 0.002, time * 0.1));
+          let noise2 = noise1 + smoothAbsNoise(p.noise(x * 0.008, i * 0.002, (time + 2054) * 0.001));
+          let blendFactor = 1.0;
+          let blendedNoise1 = noise1;
+          
+          if (i < steps * 0.1) {
+            // Cubic ease-in-out for first 10%
+            let t = i / (steps * 0.1);
+            // Cubic ease-in-out formula
+            blendFactor = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+          } else if (i > steps * 0.9) {
+            // Cubic ease-in-out for last 10%
+            let t = (steps - i) / (steps * 0.1);
+            // Cubic ease-in-out formula
+
+            blendFactor = 1.0;
+            let blendOutFactor = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+
+            blendedNoise1 = p.lerp(noise2, noise1, blendOutFactor);
+          }
+          let blendedNoise = p.lerp(noise1, noise2, blendFactor);
+          let xNoise1 = Math.cos(perpAngle) * blendedNoise1 * 100;
+          let yNoise1 = Math.sin(perpAngle) * blendedNoise1 * 100;
+          let xNoise2 = Math.cos(perpAngle) * blendedNoise * 100;
+          let yNoise2 = Math.sin(perpAngle) * blendedNoise * 100;
+          p.fill(lineColors[l]);
+          p.circle(x + xNoise1, y + yNoise1, 1);
+          p.circle(x + xNoise2, y + yNoise2, 1);
+          p.strokeWeight(noise1 * 3);
+          p.stroke(lineColors[l]);
+
+          if (i % lineStepFreq == 0) {
+            p.line(x + xNoise1, y + yNoise1, x + xNoise2, y + yNoise2);
+          }
+        }   
+      }   
+
+      // Draw overlay rectangles for areas outside the regions
+      p.noStroke();
+      p.fill("#FFF8E6"); // Same as background color
+      
+      // Top and bottom borders
+      p.rect(0, 0, p.width, 25);
+      p.rect(0, 475, p.width, p.height - 475);
+      
+      // Areas between regions
+      p.rect(0, 25, regions[0][0], 450); // Left edge to first region
+      
+      // Between each region
+      for (let i = 0; i < regions.length - 1; i++) {
+        p.rect(regions[i][2], 25, regions[i+1][0] - regions[i][2], 450);
+      }
+      
+      // After the last region to right edge
+      p.rect(regions[regions.length-1][2], 25, p.width - regions[regions.length-1][2], 450);
     };
   };
 }
