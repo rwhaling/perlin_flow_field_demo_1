@@ -267,8 +267,8 @@ export function createSketch(parameterStore: ParameterStore) {
             let largestPartition = 0;
             let largestCount = 0;
             for (const [id, count] of Object.entries(partitionCounts)) {
-              if (count > largestCount) {
-                largestCount = count;
+              if (count as number > largestCount) {
+                largestCount = count as number;
                 largestPartition = Number(id);
               }
             }

@@ -98,7 +98,7 @@ const sketchConfigs = {
 };
 
 // Create initial parameter store
-let parameterStore = initParameterStore();
+let parameterStore: any = initParameterStore();
 let p5Instance: p5;
 
 // Entrypoint code
